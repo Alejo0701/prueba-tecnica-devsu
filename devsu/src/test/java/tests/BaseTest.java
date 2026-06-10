@@ -2,28 +2,38 @@ package tests;
 
 import com.aventstack.extentreports.ExtentReports;
 import com.aventstack.extentreports.ExtentTest;
+import com.aventstack.extentreports.MediaEntityBuilder;
 import com.aventstack.extentreports.reporter.ExtentSparkReporter;
-import listeners.ExtentReportListener;
+
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.BeforeSuite;
-import org.testng.annotations.Listeners;
 
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 
-@Listeners(ExtentReportListener.class)
 public class BaseTest {
-    protected WebDriver driver;
+    private static final String SCREENSHOT_DIR = System.getProperty("user.dir") + "/reports/screenshots";
 
-    // Hacer públicos para que el listener los pueda acceder
+    protected WebDriver driver;
     public static ExtentReports extent;
     public static ExtentTest test;
 
-    @BeforeSuite
-    public void setupReport() {
+    @BeforeClass
+    public static void setupReport() {
+        new File(SCREENSHOT_DIR).mkdirs();
         String reportPath = System.getProperty("user.dir") + "/reports/extent-report.html";
         ExtentSparkReporter sparkReporter = new ExtentSparkReporter(reportPath);
         sparkReporter.config().setReportName("DemoBlaze Automation Report");
@@ -36,22 +46,52 @@ public class BaseTest {
     }
 
     @BeforeMethod
-    public void setUp() {
+    public void setUp(Method method) {
+        test = extent.createTest(method.getDeclaringClass().getSimpleName() + "." + method.getName());
+        // WebDriverManager.chromedriver().setup();
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--start-maximized");
+        // options.addArguments("--headless"); // descomentar para headless
         driver = new ChromeDriver(options);
         driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
     }
 
     @AfterMethod
-    public void tearDown() {
+    public void tearDown(ITestResult result) {
         if (driver != null) {
+            String screenshotPath = captureScreenshot(result.getMethod().getMethodName());
+            if (screenshotPath != null) {
+                if (result.isSuccess()) {
+                    test.info("Captura de pantalla final", MediaEntityBuilder.createScreenCaptureFromPath(screenshotPath).build());
+                } else {
+                    test.fail("Fallo del test", MediaEntityBuilder.createScreenCaptureFromPath(screenshotPath).build());
+                }
+            }
             driver.quit();
         }
-        // No hacer flush aquí, se hará en el listener al finalizar
+        if (extent != null) {
+            extent.flush();
+        }
     }
 
-    public WebDriver getDriver() {
-        return driver;
+    protected String captureScreenshot(String screenshotName) {
+        if (driver == null) {
+            return null;
+        }
+
+        String sanitized = screenshotName.replaceAll("[^a-zA-Z0-9-_]", "_");
+        String screenshotPath = SCREENSHOT_DIR + "/" + sanitized + "_" + System.currentTimeMillis() + ".png";
+
+        try {
+            File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+            Path destination = Paths.get(screenshotPath);
+            Files.copy(screenshot.toPath(), destination, StandardCopyOption.REPLACE_EXISTING);
+            return screenshotPath;
+        } catch (IOException e) {
+            if (test != null) {
+                test.warning("Error al generar captura de pantalla: " + e.getMessage());
+            }
+            return null;
+        }
     }
 }
