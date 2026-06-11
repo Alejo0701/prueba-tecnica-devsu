@@ -1,0 +1,23 @@
+Conclusiones - Prueba Automatización E2E Demoblaze
+
+Acciones realizadas:
+- Implementación de un flujo E2E funcional para Demoblaze: selección de productos, carrito, checkout y confirmación de compra.
+- Automatización organizada con page objects: `HomePage`, `CartPage` y `CheckoutPage`.
+- Integración de Extent Reports para generar reporte HTML y capturas de pantalla en cada ejecución.
+- El test E2E selecciona dos productos aleatorios desde la página y valida su incorporación en el carrito y la confirmación de compra.
+- La automatización usa Selenium WebDriver con ChromeDriver y depende de la UI pública de `https://www.demoblaze.com`.
+
+Hallazgos u observaciones:
+- Se corrigió el uso de las anotaciones de TestNG en `BaseTest`.
+- Se ajustaron dependencias en `pom.xml` para mantener solo lo necesario para Selenium, TestNG y Extent Reports.
+- Se añadió la captura de pantalla y su adjunto en el reporte Extent al finalizar cada test.
+- La clase `ExtentReportListener` centraliza los eventos de TestNG y reporta los resultados a Extent, marcando `PASS`, `FAIL` y `SKIP`.
+- `BaseTest` gestiona la configuración de reporte y WebDriver: `@BeforeClass` inicializa ExtentReports y limpia la carpeta de capturas; 
+    `@BeforeMethod` crea el ChromeDriver y el `ExtentTest`; `@AfterMethod` toma capturas, las adjunta al reporte y cierra el navegador.
+- El flujo actual puede verse afectado por cambios en la UI del sitio, ya que es un sitio de pruebas que no esta bajo nuestro control,
+    por lo que los selectores deben revisarse si hay fallos.
+
+Evidencia de ejecución:
+- Reporte Extent generado en `devsu/reports/extent-report.html`.
+- Capturas de pantalla guardadas en `devsu/reports/screenshots/`.
+- Reportes Karate en `devsu/target/karate-reports/` si se ejecutan las pruebas API.
