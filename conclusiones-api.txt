@@ -1,0 +1,35 @@
+Conclusiones - Prueba API Demoblaze
+
+Acciones realizadas:
+- Se agregó un runner de Karate (`devsu/src/test/java/api/ApiTestRunner.java`) para ejecutar pruebas API en JUnit 5.
+- Se creó un archivo de escenarios Karate en `devsu/src/test/resources/auth.feature` con pruebas de signup y login.
+- Se documentó el flujo API en `readme-api.txt` para distinguirlo claramente de la automatización E2E.
+- Los datos de entrada, payloaoas y responses esperadas, fueron investigados, analizados y validados usando principalmente las herramientas de desarollador del navegador Chrome y verificados con ejecuiones en postman.
+
+Casos validados:
+- Registro de un usuario nuevo con datos dinámicos.
+- Registro fallido de usuario ya existente con la respuesta esperada de error.
+- Login exitoso con credenciales válidas y verificación de token en la respuesta.
+- Login fallido con contraseña incorrecta, validando el mensaje de error.
+- Login fallido con usuario inexistente, validando el mensaje de error.
+
+Hallazgos y observaciones:
+- Karate permite manejar valores dinámicos y codificaciones con funciones internas (`java.util.UUID`, `Base64`).
+- El escenario usa variables definidas en `Background`, como `new_username`, `new_password`, `new_coded_password`, `exist_username` y `exist_password`.
+- Estas variables permiten:
+  - generar usuarios nuevos únicos en cada ejecución,
+  - reutilizar credenciales preexistentes con valores codificados,
+  - separar datos de prueba del flujo de validación.
+- El endpoint base se usa desde `https://api.demoblaze.com` y los tests dependen de la disponibilidad de ese servicio.
+- La respuesta del API incluye mensajes de error consistentes que se validan mediante esquemas simples y comparaciones exactas.
+- Los escenarios están diseñados para ser reproducibles y separados: registro nuevo, registro existente y login.
+- Los casos fueron vlidados con postman para verificar que los resultados aqui obtneidos sean consistentes con una herramienta externa a karate.
+
+Evidencia de ejecución:
+- Reportes generados en `devsu/target/karate-reports/`.
+- El resumen principal está disponible en `devsu/target/karate-reports/karate-summary.html`.
+
+Recomendaciones:
+- Ejecutar `mvn clean test -Dtest=api.ApiTestRunner` para validar solo las pruebas API.
+- Mantener el archivo `auth.feature` actualizado si cambian los endpoints o el comportamiento del API.
+- Revisar el reporte Karate después de cada ejecución para validar resultados y métricas de feature.
