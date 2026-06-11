@@ -5,6 +5,7 @@ import com.aventstack.extentreports.ExtentTest;
 import com.aventstack.extentreports.MediaEntityBuilder;
 import com.aventstack.extentreports.reporter.ExtentSparkReporter;
 
+import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
@@ -33,7 +34,18 @@ public class BaseTest {
 
     @BeforeClass
     public static void setupReport() {
-        new File(SCREENSHOT_DIR).mkdirs();
+        String screenshotsDir = System.getProperty("user.dir") + "/reports/screenshots";
+        File dir = new File(screenshotsDir);
+        if (dir.exists()) {
+            try {
+                FileUtils.cleanDirectory(dir);
+                System.out.println("Carpeta de capturas limpiada: " + screenshotsDir);
+            } catch (IOException e) {
+                System.err.println("No se pudo limpiar la carpeta de capturas: " + e.getMessage());
+            }
+        } else {
+            dir.mkdirs();
+        }
         String reportPath = System.getProperty("user.dir") + "/reports/extent-report.html";
         ExtentSparkReporter sparkReporter = new ExtentSparkReporter(reportPath);
         sparkReporter.config().setReportName("DemoBlaze Automation Report");

@@ -30,6 +30,7 @@ public class CartPage {
 
     // Uso de XPath
     public int getCartItemsCount() {
+        wait.until(ExpectedConditions.visibilityOfAllElementsLocatedBy(productRows));
         return driver.findElements(productRows).size();
     }
 
